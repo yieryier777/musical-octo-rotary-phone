@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习笔记：Agent（AI 智能体）</title>
+<style>
+  :root { --accent:#4f46e5; --accent-soft:#eef2ff; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif; background:#f6f7fb; color:var(--text); line-height:1.8; padding:24px 16px 60px; }
+  .wrap { max-width:860px; margin:0 auto; }
+  header.hero { background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border-radius:16px; padding:36px 32px; margin-bottom:28px; }
+  header.hero h1 { font-size:30px; margin-bottom:8px; }
+  header.hero .tagline { font-size:16px; opacity:.92; }
+  header.hero .meta { margin-top:16px; font-size:12.5px; opacity:.8; }
+  section.card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:28px 30px; margin-bottom:22px; }
+  h2 { font-size:20px; color:var(--accent); margin-bottom:14px; padding-left:12px; border-left:4px solid var(--accent); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  ul,ol { padding-left:22px; }
+  li { margin:6px 0; }
+  blockquote { background:var(--accent-soft); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:16px 20px; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14.5px; }
+  th { background:var(--accent-soft); color:#3730a3; text-align:left; }
+  th,td { border:1px solid var(--line); padding:9px 12px; vertical-align:top; }
+  .diagram { text-align:center; margin:18px 0; }
+  details { background:#fafafa; border:1px solid var(--line); border-radius:10px; padding:12px 18px; margin:10px 0; }
+  summary { cursor:pointer; font-weight:600; color:var(--accent); }
+  .src li { margin:10px 0; }
+  .src .why { color:var(--muted); font-size:13.5px; }
+  footer.note { background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:22px 26px; font-size:14px; }
+  footer.note h2 { color:#b45309; border-color:#b45309; }
+  .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
+  a { color:var(--accent); word-break:break-all; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Agent（AI 智能体）</h1>
+  <div class="tagline">一句话定位：以大模型为决策核心，能自主调用工具，通过"感知—思考—行动"循环一步步完成目标的 AI 系统。</div>
+  <div class="meta">
+    <span class="pill">生成日期：2026-09-09</span>
+    <span class="pill">由 concept-learning Skill 生成</span>
+    <span class="pill">领域：人工智能</span>
+  </div>
+</header>
+
+<section class="card">
+  <h2>学习目标</h2>
+  <ol>
+    <li>能用自己的话说清 Agent 与普通对话式 AI（Chatbot）的本质区别；</li>
+    <li>能说出 Agent 的核心组成部分（模型、工具、上下文、循环、护栏）及各自作用；</li>
+    <li>能依据"流程由谁决定"判断一个场景该用 Workflow 还是 Agent；</li>
+    <li>能举出一个自己亲身经历的 Agent 应用实例，并指出其中的循环步骤。</li>
+  </ol>
+</section>
+
+<section class="card">
+  <h2>核心问题</h2>
+  <ul>
+    <li>Agent 的"自主性"到底体现在哪里？</li>
+    <li>大模型已经是"大脑"了，为什么还需要其他组成部分？</li>
+    <li>Workflow（工作流）和 Agent 的分界线是什么？</li>
+    <li>什么情况下<strong>不该</strong>用 Agent？</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>我的解释</h2>
+  <blockquote>
+    <p>我把 Agent 理解成"<strong>给大模型装上手脚和目标，让它自己干到底</strong>"。</p>
+    <p>平时我向 ChatGPT 这类助手提问，模型的职责只是"回答这一次"；而 Agent 是把模型放进一个<strong>循环</strong>里：它先读当前状况（上下文）→ 决定下一步做什么（继续思考、调用工具，还是宣告完成）→ 执行 → 看结果 → 再决定下一步。就像"顾问"和"实习生"的区别：顾问给建议，实习生拿着真实权限去改文件、提交代码、发邮件，而且自己判断做没做完。</p>
+    <p>所以 Agent 的关键不在"更聪明"，而在"<strong>有行动能力 + 有循环 + 有停止判断</strong>"。</p>
+  </blockquote>
+</section>
+
+<section class="card">
+  <h2>核心机制与组成</h2>
+  <p>综合 Anthropic 的工程实践与 Lilian Weng 的经典框架，一个 Agent 通常由以下部分构成：</p>
+  <table>
+    <tr><th>组成部分</th><th>作用</th><th>类比</th></tr>
+    <tr><td><strong>大模型（LLM）</strong></td><td>决策核心：读取上下文，产出下一步决策（文本回复或工具调用指令）</td><td>大脑</td></tr>
+    <tr><td><strong>工具（Tools）</strong></td><td>文件读写、执行命令、联网搜索、调用 API——让模型能作用于真实世界</td><td>手</td></tr>
+    <tr><td><strong>上下文（Context）</strong></td><td>系统提示、任务历史、工具返回结果，构成模型每轮决策的"全部已知信息"</td><td>工作记忆</td></tr>
+    <tr><td><strong>循环（Agent Loop）</strong></td><td>思考与行动交替进行（ReAct 模式：Reason → Act → Observe），直到模型判断任务完成</td><td>干活的节奏</td></tr>
+    <tr><td><strong>护栏（Guardrails）</strong></td><td>权限范围、敏感操作确认、步数与资源限制，防止误操作失控</td><td>安全带</td></tr>
+  </table>
+  <div class="diagram">
+    <svg viewBox="0 0 640 250" width="100%" style="max-width:620px">
+      <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#4f46e5"/></marker></defs>
+      <rect x="30" y="30" width="150" height="58" rx="12" fill="#eef2ff" stroke="#4f46e5"/>
+      <text x="105" y="54" text-anchor="middle" font-size="15" fill="#3730a3" font-weight="bold">① 感知</text>
+      <text x="105" y="76" text-anchor="middle" font-size="12" fill="#4b5563">读取上下文中的全部信息</text>
+      <rect x="245" y="30" width="150" height="58" rx="12" fill="#eef2ff" stroke="#4f46e5"/>
+      <text x="320" y="54" text-anchor="middle" font-size="15" fill="#3730a3" font-weight="bold">② 思考</text>
+      <text x="320" y="76" text-anchor="middle" font-size="12" fill="#4b5563">模型决定下一步行动</text>
+      <rect x="460" y="30" width="150" height="58" rx="12" fill="#eef2ff" stroke="#4f46e5"/>
+      <text x="535" y="54" text-anchor="middle" font-size="15" fill="#3730a3" font-weight="bold">③ 行动</text>
+      <text x="535" y="76" text-anchor="middle" font-size="12" fill="#4b5563">调用工具（文件/命令/API）</text>
+      <line x1="180" y1="59" x2="243" y2="59" stroke="#4f46e5" stroke-width="2" marker-end="url(#ar)"/>
+      <line x1="395" y1="59" x2="458" y2="59" stroke="#4f46e5" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="245" y="160" width="150" height="58" rx="12" fill="#f0fdf4" stroke="#16a34a"/>
+      <text x="320" y="184" text-anchor="middle" font-size="15" fill="#166534" font-weight="bold">④ 观察</text>
+      <text x="320" y="206" text-anchor="middle" font-size="12" fill="#4b5563">工具结果写回上下文</text>
+      <path d="M 535 88 L 535 189 L 397 189" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#ar)"/>
+      <path d="M 245 189 L 105 189 L 105 90" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#ar)"/>
+      <text x="105" y="120" text-anchor="middle" font-size="12" fill="#6b7280">回到①继续循环</text>
+      <text x="320" y="240" text-anchor="middle" font-size="12.5" fill="#6b7280">循环进行，直到模型判断任务完成或触发护栏</text>
+    </svg>
+  </div>
+  <p>ReAct 论文将这一过程形式化为"推理（Reason）"与"行动（Act）"的交替：模型先写出"我需要先查一下……"的思考，再发起行动，行动结果作为新的观察进入下一轮推理。</p>
+</section>
+
+<section class="card">
+  <h2>具体应用场景</h2>
+  <p><strong>场景：本次作业的完成过程（2026 年 9 月，WorkBuddy）。</strong></p>
+  <p>我在 WorkBuddy 中发出指令："帮我完成这份作业：建 GitHub 仓库、写 Skill、生成学习资料并推送。"接下来的半小时里，AI 作为 Agent 自主完成了一长串步骤：</p>
+  <ol>
+    <li><strong>感知</strong>：读取作业要求与当前对话上下文；</li>
+    <li><strong>思考</strong>：规划出"检查环境 → 建仓库 → 写文件 → 提交推送"的路径；</li>
+    <li><strong>行动</strong>：调用命令行工具检查 git 和 gh 的安装情况；</li>
+    <li><strong>观察</strong>：发现 gh 未安装、github.com 无法直连（连接被重置）；</li>
+    <li><strong>再思考、再行动</strong>：改变策略，改用可以连通的 GitHub API 通道；</li>
+    <li><strong>循环继续</strong>：创建目录、写入文件、执行 git commit，并在每个关键节点向我确认。</li>
+  </ol>
+  <p>我事先<strong>没有</strong>告诉它"如果 github.com 连不上该怎么办"——这条应对路径是它根据观察结果自己规划的。这正是 Agent 与固定脚本的区别：路径不确定时，由模型动态决策。</p>
+</section>
+
+<section class="card">
+  <h2>概念辨析与使用边界</h2>
+  <table>
+    <tr><th>易混淆概念</th><th>与 Agent 的区别</th></tr>
+    <tr><td><strong>Chatbot（对话助手）</strong></td><td>只负责"回答"，不作用于外部世界；没有工具调用，也没有自主的多步循环。多轮对话 ≠ Agent。</td></tr>
+    <tr><td><strong>Workflow（工作流）</strong></td><td>Anthropic 的划分标准是"流程由谁决定"：Workflow 中每一步由<strong>人预先写好的代码</strong>编排，LLM 只是流程中的执行单元；Agent 中步骤由<strong>模型自己动态决定</strong>。</td></tr>
+    <tr><td><strong>自动化脚本 / RPA</strong></td><td>规则完全固定，遇到没预设过的情况就失败；Agent 依靠模型的泛化能力应对变化的情形。</td></tr>
+    <tr><td><strong>单次工具调用</strong></td><td>很多产品宣传的"Agentic 功能"其实只调一次工具就返回，没有"观察—再决策"的循环，只能算增强版的问答。</td></tr>
+  </table>
+  <h3>使用边界（什么时候不该用 Agent）</h3>
+  <ul>
+    <li><strong>高确定性、低容错的重复任务</strong>：固定脚本或 Workflow 更稳定、更便宜、更快；</li>
+    <li><strong>成本与延迟敏感</strong>：Agent 循环的每一轮都要消耗 token，步数不可预先估计；</li>
+    <li><strong>错误会累积</strong>：多步自主行动中，早期小错可能被放大，重要操作（删除、支付、发布）必须有护栏与人工确认。</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>自测问题</h2>
+  <details><summary>1. Agent 与 Chatbot 最本质的区别是什么？</summary><p>Chatbot 只生成文本回复；Agent 能调用工具作用于真实世界，并以"感知—思考—行动—观察"循环自主推进多步任务，自行判断何时结束。</p></details>
+  <details><summary>2. "用代码写死流程、每一步调用大模型"属于 Workflow 还是 Agent？</summary><p>属于 Workflow。判断标准是流程由谁决定：代码预先编排 = Workflow；模型根据观察动态决定下一步 = Agent。</p></details>
+  <details><summary>3. Agent 循环中"观察"这一步的输出去了哪里？</summary><p>工具执行结果被写回上下文，成为下一轮决策的输入信息——这正是上下文作为"工作记忆"的角色。</p></details>
+  <details><summary>4. 举一个不适合用 Agent 的场景，并说明理由。</summary><p>示例：每晚定时把数据库备份到固定目录。任务高确定性、规则固定，用脚本（cron）更可靠、零 token 成本；Agent 反而引入不必要的成本和出错可能。</p></details>
+</section>
+
+<section class="card src">
+  <h2>参考来源</h2>
+  <ol>
+    <li>Anthropic, <em>Building Effective Agents</em><br>
+      <a href="https://www.anthropic.com/engineering/building-effective-agents">https://www.anthropic.com/engineering/building-effective-agents</a>
+      <div class="why">支撑内容：Agent 与 Workflow 的划分标准（"流程由谁决定"）、Agent 的组成与护栏、适用边界。</div></li>
+    <li>Lilian Weng, <em>LLM Powered Autonomous Agents</em>（2023）<br>
+      <a href="https://lilianweng.github.io/posts/2023-06-23-agent/">https://lilianweng.github.io/posts/2023-06-23-agent/</a>
+      <div class="why">支撑内容："LLM + 规划 + 记忆 + 工具"的经典四模块框架（用于"核心机制与组成"一节）。</div></li>
+    <li>Yao et al., <em>ReAct: Synergizing Reasoning and Acting in Language Models</em>（arXiv:2210.03629）<br>
+      <a href="https://arxiv.org/abs/2210.03629">https://arxiv.org/abs/2210.03629</a>
+      <div class="why">支撑内容：思考（Reason）与行动（Act）交替的循环模式。</div></li>
+  </ol>
+</section>
+
+<footer class="note">
+  <h2>人工核查记录</h2>
+  <p>本页由 concept-learning Skill 生成，生成后经本人核查修改：</p>
+  <ul>
+    <li>逐条核实参考链接可访问（三条均为 HTTP 200），并将 Building Effective Agents 的链接由已迁移的 /research/ 路径修正为官方当前的 /engineering/ 路径；</li>
+    <li>对照 Anthropic 原文核对"Workflow 与 Agent 的划分标准"，确认表述为"流程是否由模型动态决定"而非笼统的"是否多步骤"；</li>
+    <li>应用场景改写为本次作业的真实过程，替换了 AI 初稿中泛泛的"企业自动化办公"示例；</li>
+    <li>辨析表补充了"单次工具调用 ≠ Agent"一条，避免被营销话术误导。</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>
