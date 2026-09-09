@@ -31,6 +31,20 @@
   footer.note h2 { color:#b45309; border-color:#b45309; }
   .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
   a { color:var(--accent); word-break:break-all; }
+  /* ---- 课后自测（互动选择题） ---- */
+  .quiz .q { margin-bottom:22px; }
+  .quiz .q-title { font-weight:600; margin-bottom:8px; }
+  .quiz .opt { display:block; width:100%; text-align:left; margin:7px 0; padding:9px 16px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--text); cursor:pointer; font-size:14.5px; line-height:1.7; font-family:inherit; transition:border-color .15s; }
+  .quiz .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .quiz .opt:disabled { cursor:default; opacity:.75; }
+  .quiz .opt.correct { border-color:#16a34a; background:#f0fdf4; color:#166534; font-weight:600; opacity:1; }
+  .quiz .opt.wrong { border-color:#dc2626; background:#fef2f2; color:#b91c1c; opacity:1; }
+  .quiz .exp { display:none; margin-top:10px; background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:10px 16px; font-size:13.5px; }
+  .quiz .q.done .exp { display:block; }
+  .quiz .exp b { color:var(--accent); }
+  .quiz .score { display:none; margin-top:16px; padding:12px 18px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-weight:600; }
+  .quiz .reset { margin-top:14px; padding:7px 20px; border:1.5px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .quiz .reset:hover { background:var(--accent-soft); }
 </style>
 </head>
 <body>
@@ -132,11 +146,44 @@
 </section>
 
 <section class="card">
-  <h2>自测问题</h2>
-  <details><summary>1. 模型每次生成回答时，"看到"的信息通常包括哪几类？</summary><p>系统提示、Skill/指令注入的内容、对话历史、工具定义与返回结果、RAG 检索资料、当前用户输入——即上下文窗口内的全部 token。</p></details>
-  <details><summary>2. 为什么说"模型没有记忆"，但用起来又好像有记忆？</summary><p>模型每次调用是无状态的；"记得"是因为客户端把历史消息随每次请求重新发送，即历史被放进了本次上下文。</p></details>
-  <details><summary>3. "Lost in the Middle" 指什么？对写提示词有什么启示？</summary><p>模型对上下文开头和结尾的信息利用更好，中间的关键信息容易被忽略。启示：把最重要的指令和资料放在开头或结尾，而不是埋在长文本中间。</p></details>
-  <details><summary>4. RAG 和微调，哪一个属于"把知识放进上下文"？</summary><p>RAG。它把检索到的资料片段放进当前上下文；微调则是通过训练修改模型参数，属于"把知识写进模型"。</p></details>
+  <h2>课后自测（互动选择题）</h2>
+  <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">点击选项作答：答对显示绿色、答错显示红色，并展开答案解析。全部作答后显示得分。</p>
+  <div class="quiz">
+    <div class="q">
+      <p class="q-title">1. 以下哪一项通常<strong>不在</strong>模型单次推理的上下文窗口里？</p>
+      <button class="opt">A. 系统提示（角色、规则、安全约束）</button>
+      <button class="opt">B. 之前轮次的对话历史</button>
+      <button class="opt">C. 工具执行返回的结果（文件内容、命令输出）</button>
+      <button class="opt" data-correct="1">D. 训练截止日期之后、且未通过任何工具或检索注入给模型的最新新闻</button>
+      <div class="exp"><b>✔ 正确答案：D。</b>上下文 = 系统提示 + 指令/Skill 注入 + 对话历史 + 工具结果 + 检索资料 + 当前输入。模型不会"顺带"知道窗口之外的任何事——一切"知道"都必须以 token 的形式出现在上下文里。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">2. 为什么说"模型没有记忆"，但用起来好像记得上一句话？</p>
+      <button class="opt">A. 模型其实有记忆，只是容量很小</button>
+      <button class="opt" data-correct="1">B. 客户端把历史消息随每次请求重新发送，历史被放进了本次上下文</button>
+      <button class="opt">C. 模型把对话内容写进了自己的参数</button>
+      <button class="opt">D. 界面上显示的聊天记录本身就是模型的记忆</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>模型每次调用是无状态的；"记得"是因为那句话被完整地塞进了这一次的输入。界面上的聊天记录只是展示层——新请求不带历史，才等于"失忆"。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">3. "Lost in the Middle" 现象指的是？</p>
+      <button class="opt">A. 上下文超长时，系统会自动截断中间部分</button>
+      <button class="opt" data-correct="1">B. 模型对上下文开头和结尾的信息利用最好，放在中间的关键信息容易被忽略</button>
+      <button class="opt">C. 模型会拒绝回答出现在长文本中间的问题</button>
+      <button class="opt">D. 多个模型协作时，中间环节会丢失信息</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>这是 Liu et al.（2023）的实验发现。对写提示词的启示：把最重要的指令和资料放在开头或结尾，不要埋在长文本中间。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">4. 下列哪一项属于"把知识放进上下文"，而不是"把知识写进模型"？</p>
+      <button class="opt">A. 微调（Fine-tuning）</button>
+      <button class="opt" data-correct="1">B. RAG：检索相关资料片段并放入当前输入</button>
+      <button class="opt">C. 在新语料上继续预训练</button>
+      <button class="opt">D. 知识蒸馏出一个小模型</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>RAG、记忆文件、Skill 的共同本质都是"往上下文里放东西"，即时生效、不改变模型本身；微调、继续预训练、蒸馏则会修改模型参数。这是"使用上下文"与"训练模型"的分水岭。</div>
+    </div>
+    <div class="score"></div>
+    <button class="reset" type="button">重新作答</button>
+  </div>
 </section>
 
 <section class="card src">
@@ -161,10 +208,52 @@
     <li>逐条核实参考链接可访问（三条均为 HTTP 200）；</li>
     <li>核对"窗口组成"示意图与 WorkBuddy 实际使用的上下文结构一致，删除了初稿中无法核实的具体 token 数值，改为量级描述，避免数字过时；</li>
     <li>应用场景从 AI 初稿虚构的"客服系统"改为本次作业的真实过程，并确认其中的因果描述（报错文本留在上下文中支撑后续决策）准确；</li>
-    <li>辨析表新增"窗口大 ≠ 效果好"与敏感信息提醒两条边界。</li>
+    <li>辨析表新增"窗口大 ≠ 效果好"与敏感信息提醒两条边界；</li>
+    <li>应本人要求将"自测问题"升级为"课后自测"互动选择题（点击作答、即时判分、附答案解析），题干与解析由原自测内容改写，考核知识点未变。</li>
   </ul>
 </footer>
 
 </div>
+<script>
+(function(){
+  document.querySelectorAll('.quiz').forEach(function(quiz){
+    var qs = quiz.querySelectorAll('.q');
+    var total = qs.length, answered = 0, correct = 0;
+    var score = quiz.querySelector('.score');
+    qs.forEach(function(q){
+      q.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.classList.contains('done')) return;
+          q.classList.add('done');
+          answered++;
+          var ok = btn.getAttribute('data-correct') === '1';
+          if (ok) correct++;
+          q.querySelectorAll('.opt').forEach(function(b){
+            b.disabled = true;
+            if (b.getAttribute('data-correct') === '1') b.classList.add('correct');
+          });
+          if (!ok) btn.classList.add('wrong');
+          if (answered === total && score) {
+            score.textContent = '✅ 全部完成！得分：' + correct + ' / ' + total + (correct === total ? ' —— 全对，可以进入下一个概念了！' : ' —— 错题请阅读对应解析后重做。');
+            score.style.display = 'block';
+          }
+        });
+      });
+    });
+    var reset = quiz.querySelector('.reset');
+    if (reset) reset.addEventListener('click', function(){
+      answered = 0; correct = 0;
+      if (score) { score.style.display = 'none'; score.textContent = ''; }
+      qs.forEach(function(q){
+        q.classList.remove('done');
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled = false;
+          b.classList.remove('correct','wrong');
+        });
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>

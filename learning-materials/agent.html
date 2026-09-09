@@ -31,6 +31,20 @@
   footer.note h2 { color:#b45309; border-color:#b45309; }
   .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
   a { color:var(--accent); word-break:break-all; }
+  /* ---- 课后自测（互动选择题） ---- */
+  .quiz .q { margin-bottom:22px; }
+  .quiz .q-title { font-weight:600; margin-bottom:8px; }
+  .quiz .opt { display:block; width:100%; text-align:left; margin:7px 0; padding:9px 16px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--text); cursor:pointer; font-size:14.5px; line-height:1.7; font-family:inherit; transition:border-color .15s; }
+  .quiz .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .quiz .opt:disabled { cursor:default; opacity:.75; }
+  .quiz .opt.correct { border-color:#16a34a; background:#f0fdf4; color:#166534; font-weight:600; opacity:1; }
+  .quiz .opt.wrong { border-color:#dc2626; background:#fef2f2; color:#b91c1c; opacity:1; }
+  .quiz .exp { display:none; margin-top:10px; background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:10px 16px; font-size:13.5px; }
+  .quiz .q.done .exp { display:block; }
+  .quiz .exp b { color:var(--accent); }
+  .quiz .score { display:none; margin-top:16px; padding:12px 18px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-weight:600; }
+  .quiz .reset { margin-top:14px; padding:7px 20px; border:1.5px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .quiz .reset:hover { background:var(--accent-soft); }
 </style>
 </head>
 <body>
@@ -145,11 +159,44 @@
 </section>
 
 <section class="card">
-  <h2>自测问题</h2>
-  <details><summary>1. Agent 与 Chatbot 最本质的区别是什么？</summary><p>Chatbot 只生成文本回复；Agent 能调用工具作用于真实世界，并以"感知—思考—行动—观察"循环自主推进多步任务，自行判断何时结束。</p></details>
-  <details><summary>2. "用代码写死流程、每一步调用大模型"属于 Workflow 还是 Agent？</summary><p>属于 Workflow。判断标准是流程由谁决定：代码预先编排 = Workflow；模型根据观察动态决定下一步 = Agent。</p></details>
-  <details><summary>3. Agent 循环中"观察"这一步的输出去了哪里？</summary><p>工具执行结果被写回上下文，成为下一轮决策的输入信息——这正是上下文作为"工作记忆"的角色。</p></details>
-  <details><summary>4. 举一个不适合用 Agent 的场景，并说明理由。</summary><p>示例：每晚定时把数据库备份到固定目录。任务高确定性、规则固定，用脚本（cron）更可靠、零 token 成本；Agent 反而引入不必要的成本和出错可能。</p></details>
+  <h2>课后自测（互动选择题）</h2>
+  <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">点击选项作答：答对显示绿色、答错显示红色，并展开答案解析。全部作答后显示得分。</p>
+  <div class="quiz">
+    <div class="q">
+      <p class="q-title">1. Agent 与 Chatbot 最本质的区别是什么？</p>
+      <button class="opt">A. Agent 背后的模型更大、回答更准确</button>
+      <button class="opt" data-correct="1">B. Agent 能调用工具作用于外部世界，并以"感知—思考—行动—观察"循环自主推进多步任务</button>
+      <button class="opt">C. Agent 一定拥有图形界面和语音交互能力</button>
+      <button class="opt">D. Agent 只能处理技术类问题</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>Chatbot 的职责只是"回答这一次"，生成文本就结束；Agent 把模型放进循环里——有工具（行动能力）、有"观察—再决策"、有停止判断。区别不在模型强弱，而在"能行动 + 有循环 + 会判断何时结束"。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">2. 某系统用代码预先写死了流程（第一步做什么、第二步做什么都由人编排），只是每一步内部调用了大模型。它属于 Workflow 还是 Agent？</p>
+      <button class="opt">A. Agent，因为流程中用到了大模型</button>
+      <button class="opt" data-correct="1">B. Workflow，因为流程由人预先编写的代码决定</button>
+      <button class="opt">C. 既是 Workflow 又是 Agent</button>
+      <button class="opt">D. 既不是 Workflow 也不是 Agent</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>Anthropic 给出的划分标准是"流程由谁决定"：由代码预先编排 = Workflow，大模型只是流程中的执行单元；由模型根据观察动态决定下一步 = Agent。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">3. Agent 循环中"观察"（Observation）这一步的输出去向是？</p>
+      <button class="opt">A. 存入模型的长期记忆，下次会话仍可使用</button>
+      <button class="opt" data-correct="1">B. 写回上下文，成为下一轮决策的输入</button>
+      <button class="opt">C. 直接修改模型参数，让模型"学会"新知识</button>
+      <button class="opt">D. 仅用于向用户展示执行进度，之后不再被使用</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>工具执行结果被写回上下文，成为模型下一轮"感知"的内容——这正是上下文作为"工作记忆"的角色。模型的参数在推理过程中不会改变。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">4. 下列哪个场景最适合用 Agent，而不是固定脚本或 Workflow？</p>
+      <button class="opt">A. 每晚定时把数据库备份到固定目录</button>
+      <button class="opt">B. 按固定模板批量重命名一批文件</button>
+      <button class="opt" data-correct="1">C. 排查一个原因未知的线上故障，需要边查边调整排查方向</button>
+      <button class="opt">D. 每天定时拉取固定报表并发送到指定邮箱</button>
+      <div class="exp"><b>✔ 正确答案：C。</b>高确定性、低容错的重复任务（A/B/D）用脚本更稳定、更便宜、零 token 成本；Agent 的价值在于路径不确定时由模型动态决策——正如本资料应用场景中"发现 github.com 连不通后自主改走 API 通道"的情形。</div>
+    </div>
+    <div class="score"></div>
+    <button class="reset" type="button">重新作答</button>
+  </div>
 </section>
 
 <section class="card src">
@@ -174,10 +221,52 @@
     <li>逐条核实参考链接可访问（三条均为 HTTP 200），并将 Building Effective Agents 的链接由已迁移的 /research/ 路径修正为官方当前的 /engineering/ 路径；</li>
     <li>对照 Anthropic 原文核对"Workflow 与 Agent 的划分标准"，确认表述为"流程是否由模型动态决定"而非笼统的"是否多步骤"；</li>
     <li>应用场景改写为本次作业的真实过程，替换了 AI 初稿中泛泛的"企业自动化办公"示例；</li>
-    <li>辨析表补充了"单次工具调用 ≠ Agent"一条，避免被营销话术误导。</li>
+    <li>辨析表补充了"单次工具调用 ≠ Agent"一条，避免被营销话术误导；</li>
+    <li>应本人要求将"自测问题"升级为"课后自测"互动选择题（点击作答、即时判分、附答案解析），题干与解析由原自测内容改写，考核知识点未变。</li>
   </ul>
 </footer>
 
 </div>
+<script>
+(function(){
+  document.querySelectorAll('.quiz').forEach(function(quiz){
+    var qs = quiz.querySelectorAll('.q');
+    var total = qs.length, answered = 0, correct = 0;
+    var score = quiz.querySelector('.score');
+    qs.forEach(function(q){
+      q.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.classList.contains('done')) return;
+          q.classList.add('done');
+          answered++;
+          var ok = btn.getAttribute('data-correct') === '1';
+          if (ok) correct++;
+          q.querySelectorAll('.opt').forEach(function(b){
+            b.disabled = true;
+            if (b.getAttribute('data-correct') === '1') b.classList.add('correct');
+          });
+          if (!ok) btn.classList.add('wrong');
+          if (answered === total && score) {
+            score.textContent = '✅ 全部完成！得分：' + correct + ' / ' + total + (correct === total ? ' —— 全对，可以进入下一个概念了！' : ' —— 错题请阅读对应解析后重做。');
+            score.style.display = 'block';
+          }
+        });
+      });
+    });
+    var reset = quiz.querySelector('.reset');
+    if (reset) reset.addEventListener('click', function(){
+      answered = 0; correct = 0;
+      if (score) { score.style.display = 'none'; score.textContent = ''; }
+      qs.forEach(function(q){
+        q.classList.remove('done');
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled = false;
+          b.classList.remove('correct','wrong');
+        });
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>

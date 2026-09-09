@@ -29,6 +29,20 @@
   .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
   footer.note { background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:22px 26px; font-size:14px; }
   footer.note h2 { color:#b45309; border-color:#b45309; }
+  /* ---- 课后自测（互动选择题） ---- */
+  .quiz .q { margin-bottom:22px; }
+  .quiz .q-title { font-weight:600; margin-bottom:8px; }
+  .quiz .opt { display:block; width:100%; text-align:left; margin:7px 0; padding:9px 16px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--text); cursor:pointer; font-size:14.5px; line-height:1.7; font-family:inherit; transition:border-color .15s; }
+  .quiz .opt:hover:not(:disabled) { border-color:var(--accent2); }
+  .quiz .opt:disabled { cursor:default; opacity:.75; }
+  .quiz .opt.correct { border-color:#16a34a; background:#f0fdf4; color:#166534; font-weight:600; opacity:1; }
+  .quiz .opt.wrong { border-color:#dc2626; background:#fef2f2; color:#b91c1c; opacity:1; }
+  .quiz .exp { display:none; margin-top:10px; background:#eff6ff; border-left:3px solid var(--accent2); border-radius:0 8px 8px 0; padding:10px 16px; font-size:13.5px; }
+  .quiz .q.done .exp { display:block; }
+  .quiz .exp b { color:var(--accent2); }
+  .quiz .score { display:none; margin-top:16px; padding:12px 18px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-weight:600; }
+  .quiz .reset { margin-top:14px; padding:7px 20px; border:1.5px solid var(--accent2); background:#fff; color:var(--accent2); border-radius:8px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .quiz .reset:hover { background:#eff6ff; }
 </style>
 </head>
 <body>
@@ -162,15 +176,98 @@
   </blockquote>
 </section>
 
+<section class="card">
+  <h2>课后自测（互动选择题）</h2>
+  <p style="color:#6b7280;font-size:13.5px;margin-bottom:14px;">综合考查三个概念之间的关系。点击选项作答：答对显示绿色、答错显示红色，并展开答案解析。全部作答后显示得分。</p>
+  <div class="quiz">
+    <div class="q">
+      <p class="q-title">1. 三个概念中，被称为"枢纽"——既是 Agent 每轮决策的依据、又是 Skill 生效的载体——的是？</p>
+      <button class="opt">A. Agent</button>
+      <button class="opt" data-correct="1">B. 大模型的上下文</button>
+      <button class="opt">C. Skill</button>
+      <button class="opt">D. 工具（Tools）</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>Agent 的每次决策都要读上下文，Skill 靠把正文注入上下文起作用，工具的执行结果也写回上下文——三个概念都汇聚在上下文上。所以"用好 AI"很大程度上是"管好它每次看到什么"。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">2. Skill 发挥作用的方式是？</p>
+      <button class="opt">A. 修改模型参数，让模型学会新技能</button>
+      <button class="opt" data-correct="1">B. 意图匹配后把 SKILL.md 正文注入上下文，为当次任务提供方法</button>
+      <button class="opt">C. 替换 Agent 的"感知—思考—行动—观察"循环</button>
+      <button class="opt">D. 直接接管工具的执行过程</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>Skill 不改变模型本身，只通过注入上下文起作用——这也是它与微调的根本区别：一个是"给当次任务看方法"，一个是"把知识写进参数"。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">3. 按"生命周期"维度对比：只在"一次请求内有效、请求结束即消失"的是？</p>
+      <button class="opt">A. Agent</button>
+      <button class="opt" data-correct="1">B. 大模型的上下文</button>
+      <button class="opt">C. Skill</button>
+      <button class="opt">D. 三者都是</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>上下文随请求生灭；Agent 存在于一次任务执行期间；Skill 持久保存在仓库/用户目录中，可跨会话复用——这正是 Skill 能"沉淀"任务知识的原因。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">4. 本次作业中"克隆失败的报错留在上下文里，才有了改走 API 通道的决策"这一情节，最能说明哪条关系？</p>
+      <button class="opt" data-correct="1">A. 上下文如何影响 Agent 的工作：工具观察结果写回上下文，构成下一步决策的依据</button>
+      <button class="opt">B. Skill 如何沉淀可复用的任务知识</button>
+      <button class="opt">C. 模型拥有跨会话的长期记忆</button>
+      <button class="opt">D. 工具比模型本身更重要</button>
+      <div class="exp"><b>✔ 正确答案：A。</b>这是"上下文 → Agent 决策"的直接例证：报错文本作为观察被写回上下文，Agent 在下一轮读到它，才做出"换 API 通道"的判断。若上下文里没有这条报错，决策就没有依据。</div>
+    </div>
+    <div class="score"></div>
+    <button class="reset" type="button">重新作答</button>
+  </div>
+</section>
+
 <footer class="note">
   <h2>人工核查记录</h2>
   <ul>
     <li>本页三条关系均与三份概念资料及所列官方来源交叉核对，未引入新的事实性来源；</li>
     <li>SVG 图与 Mermaid 源码描述同一结构，已人工比对本仓库实际使用流程（Skill 注入 → Agent 循环 → 工具结果写回）一致；</li>
-    <li>初稿曾把"Skill 通过改变模型行为偏好起作用"的模糊表述删掉，明确为"只通过注入上下文起作用，不改变模型本身"，与官方文档口径一致。</li>
+    <li>初稿曾把"Skill 通过改变模型行为偏好起作用"的模糊表述删掉，明确为"只通过注入上下文起作用，不改变模型本身"，与官方文档口径一致；</li>
+    <li>应本人要求新增"课后自测"互动选择题一节（点击作答、即时判分、附答案解析），四道题分别对应"上下文是枢纽""Skill 的生效方式""三者生命周期对比""上下文对 Agent 决策的影响"四个核心关系，题干与解析均依据本页正文与三份概念资料编写。</li>
   </ul>
 </footer>
 
 </div>
+<script>
+(function(){
+  document.querySelectorAll('.quiz').forEach(function(quiz){
+    var qs = quiz.querySelectorAll('.q');
+    var total = qs.length, answered = 0, correct = 0;
+    var score = quiz.querySelector('.score');
+    qs.forEach(function(q){
+      q.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.classList.contains('done')) return;
+          q.classList.add('done');
+          answered++;
+          var ok = btn.getAttribute('data-correct') === '1';
+          if (ok) correct++;
+          q.querySelectorAll('.opt').forEach(function(b){
+            b.disabled = true;
+            if (b.getAttribute('data-correct') === '1') b.classList.add('correct');
+          });
+          if (!ok) btn.classList.add('wrong');
+          if (answered === total && score) {
+            score.textContent = '✅ 全部完成！得分：' + correct + ' / ' + total + (correct === total ? ' —— 全对，三个概念的关系已经吃透了！' : ' —— 错题请阅读对应解析后重做。');
+            score.style.display = 'block';
+          }
+        });
+      });
+    });
+    var reset = quiz.querySelector('.reset');
+    if (reset) reset.addEventListener('click', function(){
+      answered = 0; correct = 0;
+      if (score) { score.style.display = 'none'; score.textContent = ''; }
+      qs.forEach(function(q){
+        q.classList.remove('done');
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled = false;
+          b.classList.remove('correct','wrong');
+        });
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>

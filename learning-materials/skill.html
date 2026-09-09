@@ -32,6 +32,20 @@
   .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
   a { color:var(--accent); word-break:break-all; }
   pre { background:#1f2937; color:#e5e7eb; border-radius:10px; padding:14px 18px; overflow-x:auto; font-size:13px; line-height:1.6; margin:10px 0; }
+  /* ---- 课后自测（互动选择题） ---- */
+  .quiz .q { margin-bottom:22px; }
+  .quiz .q-title { font-weight:600; margin-bottom:8px; }
+  .quiz .opt { display:block; width:100%; text-align:left; margin:7px 0; padding:9px 16px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--text); cursor:pointer; font-size:14.5px; line-height:1.7; font-family:inherit; transition:border-color .15s; }
+  .quiz .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .quiz .opt:disabled { cursor:default; opacity:.75; }
+  .quiz .opt.correct { border-color:#16a34a; background:#f0fdf4; color:#166534; font-weight:600; opacity:1; }
+  .quiz .opt.wrong { border-color:#dc2626; background:#fef2f2; color:#b91c1c; opacity:1; }
+  .quiz .exp { display:none; margin-top:10px; background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:10px 16px; font-size:13.5px; }
+  .quiz .q.done .exp { display:block; }
+  .quiz .exp b { color:var(--accent); }
+  .quiz .score { display:none; margin-top:16px; padding:12px 18px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-weight:600; }
+  .quiz .reset { margin-top:14px; padding:7px 20px; border:1.5px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .quiz .reset:hover { background:var(--accent-soft); }
 </style>
 </head>
 <body>
@@ -136,11 +150,44 @@ description: 概念学习资料生成器……  # 一句话说明"什么时候�
 </section>
 
 <section class="card">
-  <h2>自测问题</h2>
-  <details><summary>1. SKILL.md 顶部 YAML 中的 name 和 description 分别起什么作用？</summary><p>name 是技能的系统标识；description 说明"什么时候该用这个技能"，是触发匹配的主要依据——描述越精准，自动触发越准确。</p></details>
-  <details><summary>2. Skill 和 Tool 的本质区别是什么？</summary><p>Tool 给模型新的"能力"（调用 API、执行命令的接口）；Skill 给模型"方法"（完成某类任务的流程与标准，以文档形式注入上下文）。</p></details>
-  <details><summary>3. 为什么 Skill 采用"渐进披露"（先只暴露元数据，匹配后再加载正文）？</summary><p>上下文窗口有限且按 token 计费；技能可能很多，全部常驻会挤占窗口、稀释注意力。按需加载让"当前任务最相关的知识"进入上下文。</p></details>
-  <details><summary>4. 项目级 Skill 和用户级 Skill 分别适合放什么？</summary><p>项目级（仓库 .workbuddy/skills/）：与该项目/团队相关的流程，随仓库共享和版本管理；用户级（~/.workbuddy/skills/）：个人跨项目的通用习惯与工作流。</p></details>
+  <h2>课后自测（互动选择题）</h2>
+  <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">点击选项作答：答对显示绿色、答错显示红色，并展开答案解析。全部作答后显示得分。</p>
+  <div class="quiz">
+    <div class="q">
+      <p class="q-title">1. SKILL.md 顶部 YAML 元数据中的 description 字段，最主要的作用是？</p>
+      <button class="opt">A. 美化文档，用于展示在 README 中</button>
+      <button class="opt">B. 记录作者与版本信息</button>
+      <button class="opt" data-correct="1">C. 告诉系统"什么时候该用这个技能"，是触发匹配的主要依据</button>
+      <button class="opt">D. 声明该技能依赖哪些外部工具</button>
+      <div class="exp"><b>✔ 正确答案：C。</b>name 是技能的系统标识；description 说明"什么时候用我、什么时候别用我"。描述写得越精准，自动触发越准确、误触发越少——这也是官方 best practice 强调"先写好 description"的原因。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">2. Skill 与 Tool 的本质区别是？</p>
+      <button class="opt">A. 没有区别，只是同一事物的两种叫法</button>
+      <button class="opt" data-correct="1">B. Tool 给模型新的"能力"（调用外部系统的接口）；Skill 给模型"方法"（完成某类任务的流程与标准，以文档形式注入上下文）</button>
+      <button class="opt">C. Skill 是 Tool 的一种底层实现方式</button>
+      <button class="opt">D. Tool 只能在 Agent 中使用，Skill 只能在普通对话中使用</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>"能力 vs 方法"。Skill 本质是一份带元数据的 Markdown 文档，通过注入上下文生效，不改变模型本身；Tool 则是模型可以调用的外部接口。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">3. Skill 采用"渐进披露"（平时只暴露元数据，匹配后再加载正文）的主要原因是？</p>
+      <button class="opt">A. 为了给技能内容加密，防止泄露</button>
+      <button class="opt">B. 为了提高 Markdown 文档的渲染速度</button>
+      <button class="opt" data-correct="1">C. 上下文窗口有限且按 token 计费，技能全部常驻会挤占窗口、稀释注意力；按需加载让最相关的知识进入上下文</button>
+      <button class="opt">D. 因为正文格式与 YAML 元数据格式不兼容</button>
+      <div class="exp"><b>✔ 正确答案：C。</b>这是一种上下文管理策略：技能可能有很多，若全部常驻会浪费 token 并稀释注意力。平时只占一行元数据，意图匹配时才注入正文——"最少且足够"原则的应用。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">4. 项目级 Skill 与用户级 Skill 的适用对象分别是？</p>
+      <button class="opt">A. 两者无区别，可以随意混用</button>
+      <button class="opt" data-correct="1">B. 项目级（仓库 .workbuddy/skills/）放与该项目相关的流程，随仓库共享、参与版本管理；用户级（~/.workbuddy/skills/）放个人跨项目的通用习惯</button>
+      <button class="opt">C. 项目级只能放代码脚本，用户级只能放文档</button>
+      <button class="opt">D. 用户级技能的优先级一定高于项目级</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>区别在作用域：项目级服务于"这个仓库/这个团队"，随 Git 版本管理并共享给协作者；用户级服务于"这台机器上的我"，跨项目生效。本次作业的 concept-learning 就是项目级 Skill。</div>
+    </div>
+    <div class="score"></div>
+    <button class="reset" type="button">重新作答</button>
+  </div>
 </section>
 
 <section class="card src">
@@ -168,10 +215,52 @@ description: 概念学习资料生成器……  # 一句话说明"什么时候�
     <li>逐条核实参考链接可访问（四条均为 HTTP 200）；</li>
     <li>对照官方文档核对"渐进披露"的描述，修正了初稿中"Skill 会一直驻留在上下文里"的错误说法；</li>
     <li>应用场景改为本作业的真实使用链路，并把"复用时零新增提示词"这一对比写清楚，验证 Skill 的可复用性主张；</li>
-    <li>辨析表中"Skill vs 微调"一条补充了选择标准（能力 vs 方法），避免非此即彼的误导。</li>
+    <li>辨析表中"Skill vs 微调"一条补充了选择标准（能力 vs 方法），避免非此即彼的误导；</li>
+    <li>应本人要求将"自测问题"升级为"课后自测"互动选择题（点击作答、即时判分、附答案解析），题干与解析由原自测内容改写，考核知识点未变。</li>
   </ul>
 </footer>
 
 </div>
+<script>
+(function(){
+  document.querySelectorAll('.quiz').forEach(function(quiz){
+    var qs = quiz.querySelectorAll('.q');
+    var total = qs.length, answered = 0, correct = 0;
+    var score = quiz.querySelector('.score');
+    qs.forEach(function(q){
+      q.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.classList.contains('done')) return;
+          q.classList.add('done');
+          answered++;
+          var ok = btn.getAttribute('data-correct') === '1';
+          if (ok) correct++;
+          q.querySelectorAll('.opt').forEach(function(b){
+            b.disabled = true;
+            if (b.getAttribute('data-correct') === '1') b.classList.add('correct');
+          });
+          if (!ok) btn.classList.add('wrong');
+          if (answered === total && score) {
+            score.textContent = '✅ 全部完成！得分：' + correct + ' / ' + total + (correct === total ? ' —— 全对，可以进入下一个概念了！' : ' —— 错题请阅读对应解析后重做。');
+            score.style.display = 'block';
+          }
+        });
+      });
+    });
+    var reset = quiz.querySelector('.reset');
+    if (reset) reset.addEventListener('click', function(){
+      answered = 0; correct = 0;
+      if (score) { score.style.display = 'none'; score.textContent = ''; }
+      qs.forEach(function(q){
+        q.classList.remove('done');
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled = false;
+          b.classList.remove('correct','wrong');
+        });
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>
