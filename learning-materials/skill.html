@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习笔记：Skill（智能体技能）</title>
+<style>
+  :root { --accent:#7c3aed; --accent-soft:#f5f3ff; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif; background:#f6f7fb; color:var(--text); line-height:1.8; padding:24px 16px 60px; }
+  .wrap { max-width:860px; margin:0 auto; }
+  header.hero { background:linear-gradient(135deg,#7c3aed,#db2777); color:#fff; border-radius:16px; padding:36px 32px; margin-bottom:28px; }
+  header.hero h1 { font-size:30px; margin-bottom:8px; }
+  header.hero .tagline { font-size:16px; opacity:.92; }
+  header.hero .meta { margin-top:16px; font-size:12.5px; opacity:.8; }
+  section.card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:28px 30px; margin-bottom:22px; }
+  h2 { font-size:20px; color:var(--accent); margin-bottom:14px; padding-left:12px; border-left:4px solid var(--accent); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  ul,ol { padding-left:22px; }
+  li { margin:6px 0; }
+  blockquote { background:var(--accent-soft); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:16px 20px; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14.5px; }
+  th { background:var(--accent-soft); color:#5b21b6; text-align:left; }
+  th,td { border:1px solid var(--line); padding:9px 12px; vertical-align:top; }
+  .diagram { text-align:center; margin:18px 0; }
+  details { background:#fafafa; border:1px solid var(--line); border-radius:10px; padding:12px 18px; margin:10px 0; }
+  summary { cursor:pointer; font-weight:600; color:var(--accent); }
+  .src li { margin:10px 0; }
+  .src .why { color:var(--muted); font-size:13.5px; }
+  footer.note { background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:22px 26px; font-size:14px; }
+  footer.note h2 { color:#b45309; border-color:#b45309; }
+  .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
+  a { color:var(--accent); word-break:break-all; }
+  pre { background:#1f2937; color:#e5e7eb; border-radius:10px; padding:14px 18px; overflow-x:auto; font-size:13px; line-height:1.6; margin:10px 0; }
+  /* ---- 课后自测（互动选择题） ---- */
+  .quiz .q { margin-bottom:22px; }
+  .quiz .q-title { font-weight:600; margin-bottom:8px; }
+  .quiz .opt { display:block; width:100%; text-align:left; margin:7px 0; padding:9px 16px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--text); cursor:pointer; font-size:14.5px; line-height:1.7; font-family:inherit; transition:border-color .15s; }
+  .quiz .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .quiz .opt:disabled { cursor:default; opacity:.75; }
+  .quiz .opt.correct { border-color:#16a34a; background:#f0fdf4; color:#166534; font-weight:600; opacity:1; }
+  .quiz .opt.wrong { border-color:#dc2626; background:#fef2f2; color:#b91c1c; opacity:1; }
+  .quiz .exp { display:none; margin-top:10px; background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:10px 16px; font-size:13.5px; }
+  .quiz .q.done .exp { display:block; }
+  .quiz .exp b { color:var(--accent); }
+  .quiz .score { display:none; margin-top:16px; padding:12px 18px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-weight:600; }
+  .quiz .reset { margin-top:14px; padding:7px 20px; border:1.5px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .quiz .reset:hover { background:var(--accent-soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Skill（智能体技能）</h1>
+  <div class="tagline">一句话定位：把"完成某类任务的方法"写成一份带元数据的结构化文档（SKILL.md），存放在约定位置，在合适的时机被注入模型上下文，让 AI 按这套方法做事。</div>
+  <div class="meta">
+    <span class="pill">生成日期：2026-09-09</span>
+    <span class="pill">由 concept-learning Skill 生成</span>
+    <span class="pill">领域：AI 工程实践</span>
+  </div>
+</header>
+
+<section class="card">
+  <h2>学习目标</h2>
+  <ol>
+    <li>能说清 Skill 与一次性提示词（Prompt）的区别，以及 Skill 解决了什么问题；</li>
+    <li>能描述 SKILL.md 的文件结构（YAML 元数据 + Markdown 正文）与两个存放层级；</li>
+    <li>能解释 Skill 的加载机制——为什么采用"按需注入、渐进披露"；</li>
+    <li>能动手为自己的重复性任务设计一个可复用的 Skill。</li>
+  </ol>
+</section>
+
+<section class="card">
+  <h2>核心问题</h2>
+  <ul>
+    <li>每次把要求写进提示词不行吗？Skill 的价值到底在哪里？</li>
+    <li>Skill 是怎么被"触发"和"加载"的？</li>
+    <li>Skill、工具（Tool）、微调（Fine-tuning）分别适合沉淀什么？</li>
+    <li>一个好 Skill 的判断标准是什么？</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>我的解释</h2>
+  <blockquote>
+    <p>我发现每次让 AI 帮我学新概念时，都要重复交代同一套要求："给我学习目标、用自己的话解释、配案例、出几道自测题、附上可核查的来源……"——这些要求其实是<strong>稳定的</strong>，每次变的只有概念名。</p>
+    <p>于是我把这套要求写成一份 SKILL.md 存进项目里，以后只需说"用 concept-learning 学 XXX"，AI 就会加载这份文档、按流程执行。</p>
+    <p>一句话总结：<strong>提示词是"一次性口头交代"，Skill 是"写进制度的流程"</strong>——它可以被版本管理、可以分享给团队、可以在一次次使用中迭代变好。它本质上是给 AI 的 SOP（标准作业程序）文档。</p>
+  </blockquote>
+</section>
+
+<section class="card">
+  <h2>核心机制与组成</h2>
+  <h3>1. 文件形态：SKILL.md</h3>
+  <pre>---
+name: concept-learning          # 技能名（供系统识别）
+description: 概念学习资料生成器……  # 一句话说明"什么时候用我"（供触发匹配）
+---
+# 正文：适用场景 / 输入 / 步骤 / 输出 / 来源要求 / 自检要求</pre>
+  <p>顶部 YAML 元数据中最关键的是 <code>description</code>：模型平时只能"看见"各技能的名字和描述，<strong>描述写得越准，触发就越准</strong>。</p>
+  <h3>2. 加载机制：按需注入 + 渐进披露</h3>
+  <ul>
+    <li><strong>平时不占用上下文</strong>：技能列表只暴露 name + description 这点元信息；</li>
+    <li><strong>匹配时才加载</strong>：用户意图与某个 description 匹配，SKILL.md 正文才被读入当前上下文，成为行为指令；</li>
+    <li><strong>渐进披露</strong>：正文引用的脚本、参考资料等更深层内容，只在真正需要时才逐层加载——避免一次性塞满有限的上下文窗口。</li>
+  </ul>
+  <h3>3. 存放层级</h3>
+  <table>
+    <tr><th>层级</th><th>位置</th><th>适用</th></tr>
+    <tr><td><strong>项目级</strong></td><td>仓库根目录 <code>.workbuddy/skills/</code></td><td>随仓库共享给团队，和项目一起版本管理（本作业采用）</td></tr>
+    <tr><td><strong>用户级</strong></td><td><code>~/.workbuddy/skills/</code></td><td>个人跨项目使用，不随某个仓库分发</td></tr>
+  </table>
+  <h3>4. 与相邻机制的关系</h3>
+  <ul>
+    <li><strong>Tool（工具）给"能力"</strong>：让模型能调用 API、执行命令（新的"手脚"）；<strong>Skill 给"方法"</strong>：让它知道这类事该怎么做（"经验"）。</li>
+    <li><strong>微调改参数</strong>：Skill 不改模型权重，只在运行时往上下文注入指令——成本低、即时生效、删除即失效。</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>具体应用场景</h2>
+  <p><strong>场景：本作业本身（2026 年 9 月）。</strong></p>
+  <p>仓库中的 <code>.workbuddy/skills/concept-learning/SKILL.md</code> 就是这个机制的实例。使用过程：</p>
+  <ol>
+    <li>我在 WorkBuddy 中说："用 concept-learning 学习'Agent'这个概念"；</li>
+    <li>WorkBuddy 匹配到该技能，把 SKILL.md 正文注入上下文；</li>
+    <li>AI 严格按 Skill 定义的十步流程执行：定位概念 → 核实来源 → 写学习目标与核心问题 → 个人化解释 → 机制拆解 → 场景 → 辨析 → 自测 → 来源 → 自检；</li>
+    <li>产出 <code>learning-materials/agent.html</code>；随后学习"大模型的上下文"和"Skill"时，<strong>没有新增任何提示词</strong>，直接复用同一份 SKILL.md。</li>
+  </ol>
+  <p>对比：如果没有 Skill，我学习第四个概念（比如 RAG）时，还得把整套要求重新口述一遍；现在只需要一句话。这就是"把任务知识沉淀成资产"。</p>
+</section>
+
+<section class="card">
+  <h2>概念辨析与使用边界</h2>
+  <table>
+    <tr><th>易混淆点</th><th>辨析</th></tr>
+    <tr><td><strong>Skill vs Tool/插件</strong></td><td>工具扩展模型的"能力"（能连什么 API、能执行什么命令）；Skill 沉淀"知识/流程"（知道事情该按什么步骤、什么标准做）。有工具没方法，模型用不好；有方法没工具，模型干不了。</td></tr>
+    <tr><td><strong>Skill vs 提示词模板</strong></td><td>提示词模板是静态文本替换；Skill 有触发机制（description 匹配）、存放规范（目录 + 元数据）、可引用外部文件、可组合，且会被智能体平台统一管理和发现。</td></tr>
+    <tr><td><strong>Skill vs 微调</strong></td><td>微调通过训练修改参数、成本高、更新慢；Skill 只注入上下文、零训练成本、改文件即更新。需要稳定的新"能力"用微调/工具，需要可演进的"做法"用 Skill。</td></tr>
+    <tr><td><strong>Skill ≠ 万能</strong></td><td>Skill 不会赋予模型新能力（写一个"连数据库"的 Skill 并不能让它真的连上数据库——那需要工具）；Skill 写得臃肿反而挤占上下文。</td></tr>
+  </table>
+  <h3>好 Skill 的判断标准</h3>
+  <ul>
+    <li><strong>description 精准</strong>：明确"什么时候用我、什么时候别用我"，触发才不会误判；</li>
+    <li><strong>流程可执行</strong>：步骤具体到模型能照做，而不是一堆形容词；</li>
+    <li><strong>输出结构明确</strong>：产出什么、存哪里、什么格式，写得清楚；</li>
+    <li><strong>带自检</strong>：有完成标准，模型能自己核对有没有达标。</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>课后自测（互动选择题）</h2>
+  <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">点击选项作答：答对显示绿色、答错显示红色，并展开答案解析。全部作答后显示得分。</p>
+  <div class="quiz">
+    <div class="q">
+      <p class="q-title">1. SKILL.md 顶部 YAML 元数据中的 description 字段，最主要的作用是？</p>
+      <button class="opt">A. 美化文档，用于展示在 README 中</button>
+      <button class="opt">B. 记录作者与版本信息</button>
+      <button class="opt" data-correct="1">C. 告诉系统"什么时候该用这个技能"，是触发匹配的主要依据</button>
+      <button class="opt">D. 声明该技能依赖哪些外部工具</button>
+      <div class="exp"><b>✔ 正确答案：C。</b>name 是技能的系统标识；description 说明"什么时候用我、什么时候别用我"。描述写得越精准，自动触发越准确、误触发越少——这也是官方 best practice 强调"先写好 description"的原因。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">2. Skill 与 Tool 的本质区别是？</p>
+      <button class="opt">A. 没有区别，只是同一事物的两种叫法</button>
+      <button class="opt" data-correct="1">B. Tool 给模型新的"能力"（调用外部系统的接口）；Skill 给模型"方法"（完成某类任务的流程与标准，以文档形式注入上下文）</button>
+      <button class="opt">C. Skill 是 Tool 的一种底层实现方式</button>
+      <button class="opt">D. Tool 只能在 Agent 中使用，Skill 只能在普通对话中使用</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>"能力 vs 方法"。Skill 本质是一份带元数据的 Markdown 文档，通过注入上下文生效，不改变模型本身；Tool 则是模型可以调用的外部接口。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">3. Skill 采用"渐进披露"（平时只暴露元数据，匹配后再加载正文）的主要原因是？</p>
+      <button class="opt">A. 为了给技能内容加密，防止泄露</button>
+      <button class="opt">B. 为了提高 Markdown 文档的渲染速度</button>
+      <button class="opt" data-correct="1">C. 上下文窗口有限且按 token 计费，技能全部常驻会挤占窗口、稀释注意力；按需加载让最相关的知识进入上下文</button>
+      <button class="opt">D. 因为正文格式与 YAML 元数据格式不兼容</button>
+      <div class="exp"><b>✔ 正确答案：C。</b>这是一种上下文管理策略：技能可能有很多，若全部常驻会浪费 token 并稀释注意力。平时只占一行元数据，意图匹配时才注入正文——"最少且足够"原则的应用。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">4. 项目级 Skill 与用户级 Skill 的适用对象分别是？</p>
+      <button class="opt">A. 两者无区别，可以随意混用</button>
+      <button class="opt" data-correct="1">B. 项目级（仓库 .workbuddy/skills/）放与该项目相关的流程，随仓库共享、参与版本管理；用户级（~/.workbuddy/skills/）放个人跨项目的通用习惯</button>
+      <button class="opt">C. 项目级只能放代码脚本，用户级只能放文档</button>
+      <button class="opt">D. 用户级技能的优先级一定高于项目级</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>区别在作用域：项目级服务于"这个仓库/这个团队"，随 Git 版本管理并共享给协作者；用户级服务于"这台机器上的我"，跨项目生效。本次作业的 concept-learning 就是项目级 Skill。</div>
+    </div>
+    <div class="score"></div>
+    <button class="reset" type="button">重新作答</button>
+  </div>
+</section>
+
+<section class="card src">
+  <h2>参考来源</h2>
+  <ol>
+    <li>Anthropic, <em>Agent Skills Overview</em>（官方文档）<br>
+      <a href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview">https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview</a>
+      <div class="why">支撑内容：SKILL.md 的结构、元数据、渐进披露与分层加载机制。</div></li>
+    <li>Anthropic Engineering, <em>Equipping Agents for the Real World with Agent Skills</em><br>
+      <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a>
+      <div class="why">支撑内容：Skill 的设计理念——"代码 + 知识"的可组合、可共享的任务知识载体。</div></li>
+    <li>Anthropic, <em>Skills 发布公告</em><br>
+      <a href="https://www.anthropic.com/news/skills">https://www.anthropic.com/news/skills</a>
+      <div class="why">支撑内容：Skill 的定位与官方示例。</div></li>
+    <li>Claude Code Docs, <em>Skills</em><br>
+      <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>
+      <div class="why">支撑内容：项目级/用户级的目录规范与 best practice（先写 description、控制篇幅）。</div></li>
+  </ol>
+</section>
+
+<footer class="note">
+  <h2>人工核查记录</h2>
+  <p>本页由 concept-learning Skill 生成，生成后经本人核查修改：</p>
+  <ul>
+    <li>逐条核实参考链接可访问（四条均为 HTTP 200）；</li>
+    <li>对照官方文档核对"渐进披露"的描述，修正了初稿中"Skill 会一直驻留在上下文里"的错误说法；</li>
+    <li>应用场景改为本作业的真实使用链路，并把"复用时零新增提示词"这一对比写清楚，验证 Skill 的可复用性主张；</li>
+    <li>辨析表中"Skill vs 微调"一条补充了选择标准（能力 vs 方法），避免非此即彼的误导；</li>
+    <li>应本人要求将"自测问题"升级为"课后自测"互动选择题（点击作答、即时判分、附答案解析），题干与解析由原自测内容改写，考核知识点未变。</li>
+  </ul>
+</footer>
+
+</div>
+<script>
+(function(){
+  document.querySelectorAll('.quiz').forEach(function(quiz){
+    var qs = quiz.querySelectorAll('.q');
+    var total = qs.length, answered = 0, correct = 0;
+    var score = quiz.querySelector('.score');
+    qs.forEach(function(q){
+      q.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.classList.contains('done')) return;
+          q.classList.add('done');
+          answered++;
+          var ok = btn.getAttribute('data-correct') === '1';
+          if (ok) correct++;
+          q.querySelectorAll('.opt').forEach(function(b){
+            b.disabled = true;
+            if (b.getAttribute('data-correct') === '1') b.classList.add('correct');
+          });
+          if (!ok) btn.classList.add('wrong');
+          if (answered === total && score) {
+            score.textContent = '✅ 全部完成！得分：' + correct + ' / ' + total + (correct === total ? ' —— 全对，可以进入下一个概念了！' : ' —— 错题请阅读对应解析后重做。');
+            score.style.display = 'block';
+          }
+        });
+      });
+    });
+    var reset = quiz.querySelector('.reset');
+    if (reset) reset.addEventListener('click', function(){
+      answered = 0; correct = 0;
+      if (score) { score.style.display = 'none'; score.textContent = ''; }
+      qs.forEach(function(q){
+        q.classList.remove('done');
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled = false;
+          b.classList.remove('correct','wrong');
+        });
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

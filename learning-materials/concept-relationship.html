@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念关系：Agent、大模型的上下文、Skill</title>
+<style>
+  :root { --accent:#334155; --accent2:#2563eb; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif; background:#f6f7fb; color:var(--text); line-height:1.8; padding:24px 16px 60px; }
+  .wrap { max-width:900px; margin:0 auto; }
+  header.hero { background:linear-gradient(135deg,#0f172a,#2563eb); color:#fff; border-radius:16px; padding:36px 32px; margin-bottom:28px; }
+  header.hero h1 { font-size:28px; margin-bottom:8px; }
+  header.hero .tagline { font-size:15.5px; opacity:.92; }
+  header.hero .meta { margin-top:16px; font-size:12.5px; opacity:.8; }
+  section.card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:28px 30px; margin-bottom:22px; }
+  h2 { font-size:20px; color:var(--accent2); margin-bottom:14px; padding-left:12px; border-left:4px solid var(--accent2); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  ul,ol { padding-left:22px; }
+  li { margin:6px 0; }
+  blockquote { background:#eff6ff; border-left:4px solid var(--accent2); border-radius:0 10px 10px 0; padding:16px 20px; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14.5px; }
+  th { background:#eff6ff; color:#1e40af; text-align:left; }
+  th,td { border:1px solid var(--line); padding:9px 12px; vertical-align:top; }
+  .diagram { text-align:center; margin:18px 0; }
+  details { background:#fafafa; border:1px solid var(--line); border-radius:10px; padding:12px 18px; margin:10px 0; }
+  summary { cursor:pointer; font-weight:600; color:var(--accent2); }
+  pre { background:#1f2937; color:#e5e7eb; border-radius:10px; padding:14px 18px; overflow-x:auto; font-size:13px; line-height:1.6; margin:10px 0; }
+  .pill { display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); border-radius:99px; padding:2px 12px; font-size:12px; margin-right:6px; }
+  footer.note { background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:22px 26px; font-size:14px; }
+  footer.note h2 { color:#b45309; border-color:#b45309; }
+  /* ---- 课后自测（互动选择题） ---- */
+  .quiz .q { margin-bottom:22px; }
+  .quiz .q-title { font-weight:600; margin-bottom:8px; }
+  .quiz .opt { display:block; width:100%; text-align:left; margin:7px 0; padding:9px 16px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--text); cursor:pointer; font-size:14.5px; line-height:1.7; font-family:inherit; transition:border-color .15s; }
+  .quiz .opt:hover:not(:disabled) { border-color:var(--accent2); }
+  .quiz .opt:disabled { cursor:default; opacity:.75; }
+  .quiz .opt.correct { border-color:#16a34a; background:#f0fdf4; color:#166534; font-weight:600; opacity:1; }
+  .quiz .opt.wrong { border-color:#dc2626; background:#fef2f2; color:#b91c1c; opacity:1; }
+  .quiz .exp { display:none; margin-top:10px; background:#eff6ff; border-left:3px solid var(--accent2); border-radius:0 8px 8px 0; padding:10px 16px; font-size:13.5px; }
+  .quiz .q.done .exp { display:block; }
+  .quiz .exp b { color:var(--accent2); }
+  .quiz .score { display:none; margin-top:16px; padding:12px 18px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-weight:600; }
+  .quiz .reset { margin-top:14px; padding:7px 20px; border:1.5px solid var(--accent2); background:#fff; color:var(--accent2); border-radius:8px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .quiz .reset:hover { background:#eff6ff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Agent、大模型的上下文、Skill —— 三个概念的关系</h1>
+  <div class="tagline">Agent 是"做事的主体"，上下文是"它此刻所知的一切"，Skill 是"沉淀成文件、按需注入的方法"。三者拼在一起，才是一台能干活的 AI。</div>
+  <div class="meta">
+    <span class="pill">生成日期：2026-09-09</span>
+    <span class="pill">基于同目录三份概念学习资料</span>
+  </div>
+</header>
+
+<section class="card">
+  <h2>一个类比先建立直觉</h2>
+  <blockquote>
+    <p>把 Agent 想成一位<strong>新来的实习生</strong>：</p>
+    <ul>
+      <li><strong>上下文</strong> = 他此刻脑子里知道的一切——写在他面前那块<strong>白板</strong>上的内容，擦掉就忘；</li>
+      <li><strong>Skill</strong> = 公司发给他的 <strong>SOP 手册</strong>，平时只露出一页目录，接到对应任务时才翻到那一章；</li>
+      <li><strong>Agent</strong> = 实习生本人 + 电脑权限 + "干到做完为止"的授权。</li>
+    </ul>
+    <p>白板上写着什么，决定他这一步怎么做；手册按需摊开在白板上，让他的做法符合公司规范。三者缺一不可：没有白板（上下文）他不知道现状，没有手册（Skill）他每次都凭感觉，没有循环授权（Agent）他只会给建议不会动手。</p>
+  </blockquote>
+</section>
+
+<section class="card">
+  <h2>三条核心关系</h2>
+
+  <h3>关系一：上下文决定 Agent 的每一步</h3>
+  <p>Agent 循环的每一轮，模型都<strong>只能基于当前上下文</strong>做决策：系统提示给了角色，对话历史给了任务，工具返回结果给了"世界现状"。上下文里没有的信息，模型就当不存在——所以 Agent 的决策质量上限，就是它上下文的质量（Garbage in, garbage out）。上下文的有限性和位置敏感性，也直接约束 Agent：任务太长需要压缩历史，关键指令要放在开头或结尾。</p>
+
+  <h3>关系二：Skill 通过上下文起作用</h3>
+  <p>Skill <strong>并不改变模型本身</strong>，它的生效方式恰恰是"在对的时机，把对的方法放进上下文"。因此 Skill 是<strong>上下文工程的一种持久化形式</strong>：把"做这类任务的方法"从一次性的口头交代，固化为可版本管理、可分享、可迭代的文件。Skill 的"渐进披露"设计（平时只暴露元数据）正是对上下文有限性的尊重——不舍得浪费白板上的一寸空间。</p>
+
+  <h3>关系三：Agent 让 Skill 真正有用武之地</h3>
+  <p>如果模型只会一问一答，Skill 里写的"十步流程"最多换来一段更长的回答；正因为 Agent 能循环地读上下文、调工具、看结果，Skill 中的流程才能被<strong>真正执行</strong>——每一步的产出（工具结果、中间产物）写回上下文，支撑下一步。换句话说：Skill 描述"该怎么做"，Agent 负责"真的去做"。</p>
+</section>
+
+<section class="card">
+  <h2>整体协作图</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 720 400" width="100%" style="max-width:700px">
+      <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2563eb"/></marker><marker id="arg" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#16a34a"/></marker></defs>
+      <!-- 用户 -->
+      <rect x="290" y="16" width="140" height="50" rx="12" fill="#fef3c7" stroke="#d97706"/>
+      <text x="360" y="37" text-anchor="middle" font-size="14" font-weight="bold" fill="#92400e">用户</text>
+      <text x="360" y="56" text-anchor="middle" font-size="11.5" fill="#92400e">"用 concept-learning 学 XXX"</text>
+      <!-- Agent 循环大框 -->
+      <rect x="30" y="100" width="660" height="180" rx="16" fill="#f8fafc" stroke="#334155" stroke-dasharray="6 4"/>
+      <text x="360" y="126" text-anchor="middle" font-size="15" font-weight="bold" fill="#334155">Agent（感知 → 思考 → 行动 → 观察 循环）</text>
+      <!-- 上下文 -->
+      <rect x="60" y="150" width="230" height="105" rx="12" fill="#eff6ff" stroke="#2563eb"/>
+      <text x="175" y="175" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1e40af">上下文 Context</text>
+      <text x="175" y="198" text-anchor="middle" font-size="11.5" fill="#374151">系统提示 + 对话历史</text>
+      <text x="175" y="216" text-anchor="middle" font-size="11.5" fill="#374151">+ 工具结果 + Skill 正文</text>
+      <text x="175" y="234" text-anchor="middle" font-size="11.5" fill="#374151">= 模型此刻所知的全部</text>
+      <!-- LLM -->
+      <rect x="330" y="150" width="150" height="105" rx="12" fill="#ede9fe" stroke="#7c3aed"/>
+      <text x="405" y="185" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#5b21b6">大模型 LLM</text>
+      <text x="405" y="208" text-anchor="middle" font-size="11.5" fill="#374151">读上下文</text>
+      <text x="405" y="226" text-anchor="middle" font-size="11.5" fill="#374151">决定下一步行动</text>
+      <!-- 工具 -->
+      <rect x="520" y="150" width="150" height="105" rx="12" fill="#f0fdf4" stroke="#16a34a"/>
+      <text x="595" y="185" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#166534">工具 Tools</text>
+      <text x="595" y="208" text-anchor="middle" font-size="11.5" fill="#374151">文件 / 命令 / 搜索</text>
+      <text x="595" y="226" text-anchor="middle" font-size="11.5" fill="#374151">作用于真实世界</text>
+      <!-- 箭头：上下文 -> LLM -->
+      <line x1="290" y1="202" x2="326" y2="202" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ar)"/>
+      <!-- LLM -> 工具 -->
+      <line x1="480" y1="202" x2="516" y2="202" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ar)"/>
+      <!-- 工具 -> 上下文（观察写回） -->
+      <path d="M 595 150 L 595 60 L 175 60 L 175 146" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arg)"/>
+      <text x="385" y="52" text-anchor="middle" font-size="11.5" fill="#16a34a">观察：工具结果写回上下文，进入下一轮</text>
+      <!-- Skill -->
+      <rect x="180" y="320" width="360" height="64" rx="12" fill="#fff" stroke="#db2777" stroke-width="2"/>
+      <text x="360" y="345" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#be185d">Skill（SKILL.md 任务知识）</text>
+      <text x="360" y="367" text-anchor="middle" font-size="11.5" fill="#374151">意图匹配时正文注入上下文；平时只占用一行元数据</text>
+      <line x1="300" y1="320" x2="220" y2="259" stroke="#db2777" stroke-width="2" marker-end="url(#ar)"/>
+      <!-- 用户 -> Agent -->
+      <line x1="360" y1="66" x2="360" y2="96" stroke="#2563eb" stroke-width="2" marker-end="url(#ar)"/>
+    </svg>
+  </div>
+  <details>
+    <summary>查看 Mermaid 源码（可在支持 Mermaid 的编辑器中渲染）</summary>
+<pre>graph TD
+    U["用户：用 concept-learning 学习概念 X"] --> AG
+    subgraph AG["Agent：感知-思考-行动-观察 循环"]
+        CTX["上下文窗口<br/>系统提示+对话历史+工具结果+Skill正文"]
+        LLM["大模型<br/>读上下文，决定下一步"]
+        T["工具<br/>文件/命令/搜索"]
+        CTX -- "感知" --> LLM
+        LLM -- "行动指令" --> T
+        T -- "观察：结果写回" --> CTX
+    end
+    SK["Skill：SKILL.md<br/>沉淀的任务知识"] -. "意图匹配时注入" .-> CTX</pre>
+  </details>
+</section>
+
+<section class="card">
+  <h2>三者对比表</h2>
+  <table>
+    <tr><th>维度</th><th>Agent</th><th>上下文（Context）</th><th>Skill</th></tr>
+    <tr><td>回答的问题</td><td><strong>谁来做事？</strong>能循环决策和行动的主体</td><td><strong>它此刻知道什么？</strong>模型单次推理可见的全部信息</td><td><strong>它该怎么做？</strong>沉淀为文档的任务方法</td></tr>
+    <tr><td>本质</td><td>LLM + 工具 + 循环 + 护栏的系统</td><td>一段有限的输入信息（token 序列）</td><td>一份带元数据的 Markdown 文档</td></tr>
+    <tr><td>生命周期</td><td>一次任务执行期间存在</td><td>一次请求内有效，请求结束即消失</td><td>持久保存在仓库/用户目录，跨会话复用</td></tr>
+    <tr><td>类比</td><td>拿权限干活的实习生</td><td>实习生面前的白板</td><td>公司的 SOP 手册</td></tr>
+    <tr><td>在另外两者中的角色</td><td>Agent 执行 Skill 的流程；Agent 每轮重读上下文</td><td>上下文承载 Skill 注入的方法；上下文是 Agent 的决策依据</td><td>Skill 丰富上下文；Skill 需要 Agent 才能被执行</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>真实例证：一次作业里的三个概念</h2>
+  <p>本仓库的诞生过程就是三者协作的完整链路：</p>
+  <ol>
+    <li>我说："帮我完成这份作业"（<strong>用户目标</strong>）；</li>
+    <li>WorkBuddy 作为 <strong>Agent</strong> 开始循环：读作业要求 → 检查 git 环境 → 克隆仓库 → 发现 github.com 无法直连 → 改用 API；</li>
+    <li>每一轮它"知道"的东西——作业要求、命令输出、报错文本——全部在<strong>上下文</strong>里，报错留在上下文中，才有了"换 API 通道"这个决策；</li>
+    <li>我让它学习三个概念时，<strong>Skill</strong>（concept-learning）的正文被注入上下文，十步流程因此被稳定执行——三次学习，同一份方法，零重复交代。</li>
+  </ol>
+  <p>如果其中任何一环缺失：没有 Agent，方法只能换来一段文字建议；没有上下文管理，长对话会让它"忘记"作业要求；没有 Skill，每次学习都要从零口述一遍要求。</p>
+</section>
+
+<section class="card">
+  <h2>我的总结（个人理解）</h2>
+  <blockquote>
+    <p>学完三个概念后，我的整体判断是：<strong>它们分别对应"算力之外的三个杠杆"——行动杠杆（Agent）、信息杠杆（上下文）、知识杠杆（Skill）</strong>。</p>
+    <p>模型本身的能力是给定的，但同一个模型，配上循环与工具就成了 Agent，喂对信息（上下文工程）就能做出更好的决策，沉淀好方法（Skill）就能把一次性的成功变成可复用的流程。三者中，<strong>上下文是枢纽</strong>：Agent 的每次决策读它，Skill 的生效靠它。所以"用好 AI"很大程度上是"管好它每次看到什么"。</p>
+    <p>这也是为什么我认为这次作业的设计很巧：我们用 Agent 完成作业，用上下文理解原理，最后用 Skill 把整个学习方法沉淀下来——工具、原理、沉淀，正好闭环。</p>
+  </blockquote>
+</section>
+
+<section class="card">
+  <h2>课后自测（互动选择题）</h2>
+  <p style="color:#6b7280;font-size:13.5px;margin-bottom:14px;">综合考查三个概念之间的关系。点击选项作答：答对显示绿色、答错显示红色，并展开答案解析。全部作答后显示得分。</p>
+  <div class="quiz">
+    <div class="q">
+      <p class="q-title">1. 三个概念中，被称为"枢纽"——既是 Agent 每轮决策的依据、又是 Skill 生效的载体——的是？</p>
+      <button class="opt">A. Agent</button>
+      <button class="opt" data-correct="1">B. 大模型的上下文</button>
+      <button class="opt">C. Skill</button>
+      <button class="opt">D. 工具（Tools）</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>Agent 的每次决策都要读上下文，Skill 靠把正文注入上下文起作用，工具的执行结果也写回上下文——三个概念都汇聚在上下文上。所以"用好 AI"很大程度上是"管好它每次看到什么"。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">2. Skill 发挥作用的方式是？</p>
+      <button class="opt">A. 修改模型参数，让模型学会新技能</button>
+      <button class="opt" data-correct="1">B. 意图匹配后把 SKILL.md 正文注入上下文，为当次任务提供方法</button>
+      <button class="opt">C. 替换 Agent 的"感知—思考—行动—观察"循环</button>
+      <button class="opt">D. 直接接管工具的执行过程</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>Skill 不改变模型本身，只通过注入上下文起作用——这也是它与微调的根本区别：一个是"给当次任务看方法"，一个是"把知识写进参数"。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">3. 按"生命周期"维度对比：只在"一次请求内有效、请求结束即消失"的是？</p>
+      <button class="opt">A. Agent</button>
+      <button class="opt" data-correct="1">B. 大模型的上下文</button>
+      <button class="opt">C. Skill</button>
+      <button class="opt">D. 三者都是</button>
+      <div class="exp"><b>✔ 正确答案：B。</b>上下文随请求生灭；Agent 存在于一次任务执行期间；Skill 持久保存在仓库/用户目录中，可跨会话复用——这正是 Skill 能"沉淀"任务知识的原因。</div>
+    </div>
+    <div class="q">
+      <p class="q-title">4. 本次作业中"克隆失败的报错留在上下文里，才有了改走 API 通道的决策"这一情节，最能说明哪条关系？</p>
+      <button class="opt" data-correct="1">A. 上下文如何影响 Agent 的工作：工具观察结果写回上下文，构成下一步决策的依据</button>
+      <button class="opt">B. Skill 如何沉淀可复用的任务知识</button>
+      <button class="opt">C. 模型拥有跨会话的长期记忆</button>
+      <button class="opt">D. 工具比模型本身更重要</button>
+      <div class="exp"><b>✔ 正确答案：A。</b>这是"上下文 → Agent 决策"的直接例证：报错文本作为观察被写回上下文，Agent 在下一轮读到它，才做出"换 API 通道"的判断。若上下文里没有这条报错，决策就没有依据。</div>
+    </div>
+    <div class="score"></div>
+    <button class="reset" type="button">重新作答</button>
+  </div>
+</section>
+
+<footer class="note">
+  <h2>人工核查记录</h2>
+  <ul>
+    <li>本页三条关系均与三份概念资料及所列官方来源交叉核对，未引入新的事实性来源；</li>
+    <li>SVG 图与 Mermaid 源码描述同一结构，已人工比对本仓库实际使用流程（Skill 注入 → Agent 循环 → 工具结果写回）一致；</li>
+    <li>初稿曾把"Skill 通过改变模型行为偏好起作用"的模糊表述删掉，明确为"只通过注入上下文起作用，不改变模型本身"，与官方文档口径一致；</li>
+    <li>应本人要求新增"课后自测"互动选择题一节（点击作答、即时判分、附答案解析），四道题分别对应"上下文是枢纽""Skill 的生效方式""三者生命周期对比""上下文对 Agent 决策的影响"四个核心关系，题干与解析均依据本页正文与三份概念资料编写。</li>
+  </ul>
+</footer>
+
+</div>
+<script>
+(function(){
+  document.querySelectorAll('.quiz').forEach(function(quiz){
+    var qs = quiz.querySelectorAll('.q');
+    var total = qs.length, answered = 0, correct = 0;
+    var score = quiz.querySelector('.score');
+    qs.forEach(function(q){
+      q.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (q.classList.contains('done')) return;
+          q.classList.add('done');
+          answered++;
+          var ok = btn.getAttribute('data-correct') === '1';
+          if (ok) correct++;
+          q.querySelectorAll('.opt').forEach(function(b){
+            b.disabled = true;
+            if (b.getAttribute('data-correct') === '1') b.classList.add('correct');
+          });
+          if (!ok) btn.classList.add('wrong');
+          if (answered === total && score) {
+            score.textContent = '✅ 全部完成！得分：' + correct + ' / ' + total + (correct === total ? ' —— 全对，三个概念的关系已经吃透了！' : ' —— 错题请阅读对应解析后重做。');
+            score.style.display = 'block';
+          }
+        });
+      });
+    });
+    var reset = quiz.querySelector('.reset');
+    if (reset) reset.addEventListener('click', function(){
+      answered = 0; correct = 0;
+      if (score) { score.style.display = 'none'; score.textContent = ''; }
+      qs.forEach(function(q){
+        q.classList.remove('done');
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled = false;
+          b.classList.remove('correct','wrong');
+        });
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
